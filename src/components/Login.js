@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TouchableWithoutFeedback, Keyboard, ActivityIndicator } from 'react-native';
 import { FormLabel, FormInput, Header, Button } from 'react-native-elements';
+import { connect } from 'react-redux';
+import { login } from '../actions';
 
-export default class Login extends Component {
+class Login extends Component {
     constructor() {
         super();
         this.state = {
@@ -25,11 +27,19 @@ export default class Login extends Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        if(nextProps.user) {
+            this.props.navigation.navigate('Chat');
+        }
+    }
+
     onLoginPressed() {
-        console.log(`'Username is: '${this.state.username} + "Avatar is: " ${this.state.avatar}`)
+        const { username, avatar } = this.state;
+        this.props.login({username, avatar});
     }
 
     showBtnOrSpinner() {
+        if(this.props.loading) return <ActivityIndicator size="large" />
         return (
             <Button 
                 title="Join Chat"
@@ -70,3 +80,13 @@ const styles = StyleSheet.create({
     viewContainer: { flex: 1 },
     btnContainer: { marginTop: 20 }
 });
+
+const mapStateToProps = state => {
+    return {
+        error: state.auth.error,
+        user: state.auth.user,
+        loading: state.auth.loading
+    };
+}
+
+export default connect(mapStateToProps, { login })(Login);
