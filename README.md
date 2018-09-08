@@ -6,3 +6,6 @@
  https://www.youtube.com/watch?v=BYgFVzLpEF4&list=PL_aOZuct6oAri4_vJOl7yottYd3OvF98G&index=2 <br/>
  Step 03: Finish Login <br/>
  https://www.youtube.com/watch?v=DFJ6lehXYR8&list=PL_aOZuct6oAri4_vJOl7yottYd3OvF98G&index=3 <br/>
+ Step 04: Designing The Chat Component <br/>
+ https://www.youtube.com/watch?v=xPbob3STExg <br/>
+ 
