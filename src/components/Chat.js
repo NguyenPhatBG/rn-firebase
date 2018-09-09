@@ -5,42 +5,51 @@ import {
     TextInput,
     FlatList,
     TouchableHighlight,
+    TouchableOpacity,
     StyleSheet,
     KeyboardAvoidingView,
     Platform,
-    Keyboard
+    Keyboard,
+    AsyncStorage,
+    ActivityIndicator
 } from 'react-native';
 import { Header } from 'react-native-elements';
+import { connect } from 'react-redux';
+import { sendMessage, fetchMessages } from './../actions';
 import ChatItem from './ChatItem';
 
-export default class Chat extends Component {
+class Chat extends Component {
     constructor() {
         super();
         this.state = {
             text: '',
             disabled: true,
-            messages: [
-                {
-                    id: 1,
-                    text: 'Hello',
-                    author: {
-                        id: 1,
-                        avatar: 'http://cdn.onlinewebfonts.com/svg/img_210318.png',
-                        username: 'Vk.Phuong'
-                    }
-                },
-                {
-                    id: 2,
-                    text: 'How are you?',
-                    author: {
-                        id: 2,
-                        avatar: 'http://cdn.onlinewebfonts.com/svg/img_210318.png',
-                        username: 'Ck.Phat'
-                    }
-                },
-            ]
+            messages: []
         };
     }
+
+    componentDidMount() {
+        this.props.fetchMessages();
+    }
+
+    showListOrSpinner = () => {
+        if (this.props.fetching) {
+            return (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large"/>
+                </View>
+            );
+        }
+        return (
+            <FlatList
+                data={this.props.messages}
+                renderItem={this._renderChatItem}
+                keyExtractor={this._keyExtractor}
+                inverted
+            />
+        )
+    }
+
     onTyping = (text) => {
         if (text && text.length >= 2) {
             this.setState({ disabled: false, text });
@@ -49,18 +58,8 @@ export default class Chat extends Component {
         }
     }
 
-    onSendBtnPressed() {       
-        const messages = this.state.messages;
-        const newMessage = {
-            text: this.state.text,
-            author: {
-                id: 2,
-                avatar: 'http://cdn.onlinewebfonts.com/svg/img_210318.png',
-                username: 'Ck.Phat'
-            }
-        };
-        messages.unshift(newMessage);
-        this.setState({ messages });
+    onSendBtnPressed() {
+        this.props.sendMessage(this.state.text, this.props.user);
         this.textInput.clear();
         Keyboard.dismiss();
     }
@@ -71,6 +70,19 @@ export default class Chat extends Component {
 
     _keyExtractor = (item, index) => index.toString();
 
+    logoutChatRoom = () => {
+        AsyncStorage.removeItem('user_info');
+        this.props.navigation.navigate('Login');
+    }
+
+    renderRightComponent() {
+        return (
+            <TouchableOpacity onPress={this.logoutChatRoom}>
+                <Text style={{ color: 'white' }}>Logout</Text>
+            </TouchableOpacity>
+        )
+    }
+
     render() {
         const extraBtnStyle = this.state.disabled ? styles.disabledBtn : styles.enabledBtn;
         let behavior = '';
@@ -79,15 +91,15 @@ export default class Chat extends Component {
         } else {
             behavior = undefined
         }
+   
         return (
             <View style={styles.container}>
-                <Header centerComponent={{ text: 'Chat Room', style: { color: '#FFF', fontSize: 20 } }} />
-                <FlatList
-                    data={this.state.messages}
-                    renderItem={this._renderChatItem}
-                    keyExtractor={this._keyExtractor}
-                    inverted
+                <Header
+                    leftComponent={{ icon: 'menu', color: '#fff' }}
+                    centerComponent={{ text: 'Chat Room', style: { color: '#fff' } }}
+                    rightComponent={this.renderRightComponent()}
                 />
+                {this.showListOrSpinner()}
                 <KeyboardAvoidingView behavior={behavior}>
                     <View style={styles.inputBar}>
                         <TextInput
@@ -148,3 +160,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#89a9f4'
     }
 });
+
+const mapStateToProps = state => {
+    return {
+        user: state.auth.user,
+        fetching: state.chat.fetching,
+        messages: state.chat.messages
+    };
+}
+
+export default connect(mapStateToProps, { sendMessage, fetchMessages })(Chat);
