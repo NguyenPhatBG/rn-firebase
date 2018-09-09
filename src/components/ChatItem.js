@@ -1,19 +1,20 @@
 import React, { Component } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Avatar } from 'react-native-elements';
+import { connect } from 'react-redux';
 
-export default class ChatItem extends Component {
+class ChatItem extends Component {
     showAvatarOrNot(message) {
-        if(message.author.id !== 2) return <Avatar source={{ uri: message.author.avatar }} small rounded />;
-        return <View/>;
+        if (message.author.id !== this.props.user.id) return <Avatar source={{ uri: message.author.avatar }} small rounded />;
+        return <View />;
     }
     render() {
         const { message } = this.props;
-        const isMyMessage = message.author.id === 2;
+        const isMyMessage = message.author.id === this.props.user.id;
         const textContainerExtra = isMyMessage ? styles.textContainerRight : styles.textContainerLeft;
         return (
             <View style={styles.messageContainer}>
-                {this.showAvatarOrNot(message)}                
+                {this.showAvatarOrNot(message)}
                 <View style={[styles.textContainer, textContainerExtra]}>
                     <Text style={styles.sender}>{message.author.username}</Text>
                     <Text style={styles.message}>{message.text}</Text>
@@ -32,8 +33,16 @@ const styles = StyleSheet.create({
     },
     textContainerRight: {
         alignItems: 'flex-end',
-        backgroundColor: '#66db30' 
+        backgroundColor: '#66db30'
     },
     message: { fontSize: 16 },
     sender: { fontWeight: 'bold', paddingRight: 10 }
 });
+
+const mapStateToProps = state => {
+    return {
+        user: state.auth.user
+    };
+}
+
+export default connect(mapStateToProps)(ChatItem);
